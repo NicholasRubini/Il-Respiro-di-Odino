@@ -33,79 +33,46 @@
     // Scala della barra livello: estremi e tacche mostrate
     const LEVEL_SCALE = { min: 30, max: 80, ticks: [30, 40, 50, 60, 70, 80] };
 
-    // percent = intensità in % del VO2max (costo di ossigeno), come nel modello di Daniels.
-    // ref (opzionale) = intensità "canonica" usata per i tempi di ripetuta; default: punto medio.
+    // Due tipi di zona:
+    // - percent: intensità in % del VO2max (costo di ossigeno), come nel modello di Daniels.
+    //   ref (opzionale) = intensità "canonica" usata per i tempi di ripetuta; default: punto medio.
+    // - pace(ctx): regole originali dell'autore basate sui ritmi gara. ctx.race(m) = ritmo gara
+    //   previsto (s/km) sulla distanza m, ctx.mp = ritmo maratona. Restituisce { fast, slow, open? }.
+    const PER_MILE = 1000 / METERS_PER_MILE; // secondi/miglio → secondi/km
+
     const TRAINING_ZONES = {
         daniels: {
             name: 'Jack Daniels',
-            note: 'Sistema VDOT (Daniels\' Running Formula). Unico sistema qui definito nativamente in % VO2max.',
-            native: true,
+            note: 'Daniels\' Running Formula. E, T, I, R in % del VO2max; M è il ritmo maratona previsto dal tuo VDOT, come nelle tabelle originali.',
             zones: [
-                { name: 'Easy (E)', percent: [59, 74], description: 'Corsa facile e recupero attivo. Dovresti poter conversare senza problemi.', workout: 'Corsa continua 30-90 min. Respirazione nasale possibile.', focus: 'recovery' },
-                { name: 'Marathon (M)', percent: [75, 84], description: 'Ritmo maratona sostenibile. Concentrazione richiesta ma gestibile.', workout: 'Fondo lungo fino a 150 min, o porzioni a ritmo gara.', focus: 'endurance' },
-                { name: 'Threshold (T)', percent: [83, 88], ref: 88, description: 'Soglia lattacida. "Comfortably hard" — impegnativo ma controllato.', workout: 'Tempo run 20 min continui, o cruise intervals 3-5×1.6km con 1 min di recupero.', focus: 'threshold' },
+                { name: 'Easy (E)', percent: [59, 74], description: 'Corsa facile e recupero attivo. Dovresti poter conversare senza problemi.', workout: 'Corsa continua 30-90 min. Anche il lungo si corre a questo ritmo.', focus: 'recovery' },
+                { name: 'Marathon (M)', basis: 'Ritmo maratona previsto', pace: (c) => ({ fast: c.mp, slow: c.mp }), description: 'Ritmo maratona. Concentrazione richiesta ma gestibile.', workout: 'Porzioni a ritmo M all\'interno del lungo, fino a ~110 min totali a M.', focus: 'endurance' },
+                { name: 'Threshold (T)', percent: [83, 88], ref: 88, description: 'Soglia lattacida. "Comfortably hard": impegnativo ma controllato, sostenibile per circa un\'ora in gara.', workout: 'Tempo run 20 min continui, o cruise intervals 3-5×1.6km con 1 min di recupero.', focus: 'threshold' },
                 { name: 'Interval (I)', percent: [95, 100], ref: 97.5, description: 'Massimo consumo di ossigeno. Respirazione intensa, alta concentrazione.', workout: 'Intervalli 3-5 min (800-1200m) con recupero jog di durata simile.', focus: 'vo2max' },
-                { name: 'Repetition (R)', percent: [105, 110], ref: 105, description: 'Sviluppo velocità ed economia di corsa. Sprint controllati.', workout: 'Ripetute brevi 200-400m con recupero completo.', focus: 'speed' }
+                { name: 'Repetition (R)', percent: [105, 110], ref: 105, maxRep: 800, description: 'Velocità ed economia di corsa. Circa il ritmo gara del miglio.', workout: 'Ripetute brevi 200-400m con recupero completo.', focus: 'speed' }
             ]
         },
         pfitzinger: {
             name: 'Pete Pfitzinger',
-            note: 'Advanced Marathoning / Faster Road Racing. Zone originali in % FCmax/ritmo soglia: qui convertite in % VO2max (approssimazione).',
+            note: 'Advanced Marathoning / Faster Road Racing. Ritmi ricavati dalle regole del libro rispetto ai tuoi ritmi gara previsti. L\'autore usa anche la FC: in caso di dubbio, vale la sensazione.',
             zones: [
-                { name: 'Recovery', percent: [55, 65], description: 'Recupero puro. Molto facile, quasi imbarazzante.', workout: '20-45 min il giorno dopo allenamenti duri.', focus: 'recovery' },
-                { name: 'General Aerobic', percent: [62, 75], description: 'Base aerobica quotidiana. Il pane quotidiano del maratoneta.', workout: '45-90 min a sensazione, conversazione possibile.', focus: 'endurance' },
-                { name: 'Endurance', percent: [65, 78], description: 'Fondo lungo per adattamenti metabolici e mentali.', workout: 'Long run 90-150 min con progressione finale opzionale.', focus: 'endurance' },
-                { name: 'Lactate Threshold', percent: [82, 88], description: 'Soglia anaerobica. Massimo ritmo sostenibile per ~60 min.', workout: 'Tempo run 25-45 min, o 2×20 min con breve recupero.', focus: 'threshold' },
-                { name: 'VO2max', percent: [94, 100], description: 'Potenza aerobica massima. Cuore e polmoni al limite.', workout: 'Intervalli 600-1600m, recupero 50-90% del tempo di lavoro.', focus: 'vo2max' },
-                { name: 'Speed', percent: [105, 115], description: 'Neuromuscolare puro. Esplosività e meccanica di corsa.', workout: 'Strides, 150-300m con recupero completo.', focus: 'speed' }
-            ]
-        },
-        laufcampus: {
-            name: 'Laufcampus',
-            note: 'Sistema tedesco (Andreas Butz). Zone originali basate su lattato/FC: qui convertite in % VO2max (approssimazione).',
-            zones: [
-                { name: 'Regeneration (Rekom)', percent: [55, 65], description: 'Rigenerazione attiva. Promuove il recupero senza stress.', workout: '20-40 min molto leggeri. Può includere cammino.', focus: 'recovery' },
-                { name: 'Grundlagen 1 (GA1)', percent: [65, 75], description: 'Costruzione base aerobica. Metabolismo lipidico.', workout: '45-120 min continui. Zona di volume primaria.', focus: 'endurance' },
-                { name: 'Grundlagen 2 (GA2)', percent: [75, 85], description: 'Aerobico intenso. Transizione verso metabolismo glicolitico.', workout: 'Medium long run, fartlek strutturato.', focus: 'endurance' },
-                { name: 'Schwellenbereich (SB)', percent: [85, 92], description: 'Zona soglia. Equilibrio tra accumulo e smaltimento lattato.', workout: 'Tempo runs, progressivi, cruise intervals.', focus: 'threshold' },
-                { name: 'Entwicklungsbereich (EB)', percent: [92, 100], description: 'Sviluppo VO2max. Alta intensità sostenuta.', workout: 'Intervalli 3-8 min. 10-15 min totali ad alta intensità.', focus: 'vo2max' },
-                { name: 'Schnelligkeitsbereich', percent: [100, 115], description: 'Velocità massimale. Sistema anaerobico.', workout: 'Sprint 100-400m con pieno recupero.', focus: 'speed' }
-            ]
-        },
-        zintl: {
-            name: 'Zintl & Eisenhut',
-            note: 'Ausdauertraining. Zone originali basate su lattato/FC: qui convertite in % VO2max (approssimazione).',
-            zones: [
-                { name: 'Kompensation (KOMP)', percent: [50, 60], description: 'Compensazione metabolica. Smaltimento prodotti di scarto.', workout: 'Corsa molto leggera o camminata veloce post-gara.', focus: 'recovery' },
-                { name: 'Grundlagenausdauer 1', percent: [60, 70], description: 'Resistenza base primaria. Adattamenti centrali e periferici.', workout: 'Volume alto, bassa intensità. 60-120 min.', focus: 'endurance' },
-                { name: 'Grundlagenausdauer 2', percent: [70, 80], description: 'Resistenza base intensa. Maggiore stimolo cardiovascolare.', workout: 'Fondo medio progressivo, fartlek.', focus: 'endurance' },
-                { name: 'Entwicklungsbereich', percent: [80, 90], description: 'Zona di sviluppo. Adattamenti specifici alla competizione.', workout: 'Tempo run, intervalli lunghi.', focus: 'threshold' },
-                { name: 'Wettkampfspezifisch', percent: [90, 100], description: 'Specifico gara. Simula le richieste della competizione.', workout: 'Simulazioni gara, intervalli a ritmo obiettivo.', focus: 'vo2max' },
-                { name: 'Schnelligkeitsausdauer', percent: [100, 110], description: 'Resistenza alla velocità. Capacità anaerobica.', workout: 'Ripetute brevi massimali, lavoro in salita.', focus: 'speed' }
-            ]
-        },
-        fitzgerald: {
-            name: 'Matt Fitzgerald',
-            note: '80/20 Running (polarizzato: 80% facile, 20% intenso). Zone originali in FC/ritmo soglia: qui convertite in % VO2max (approssimazione).',
-            zones: [
-                { name: 'Zona 1 (Low Aerobic)', percent: [55, 65], description: 'Aerobico basso. Facilissimo, conversazione fluente.', workout: 'Recovery run, parte iniziale dei long run.', focus: 'recovery' },
-                { name: 'Zona 2 (Moderate Aerobic)', percent: [65, 75], description: 'Aerobico moderato. Comodo ma presente.', workout: 'Corsa generale, attenzione a non passarci troppo tempo.', focus: 'endurance' },
-                { name: 'Zona 3 (High Aerobic)', percent: [75, 82], description: 'Aerobico alto. Ritmo maratona per molti runners.', workout: 'Fondo lungo finale, marathon pace segments.', focus: 'endurance' },
-                { name: 'Zona 4 (Threshold)', percent: [82, 89], description: 'Soglia. Massimo ritmo sostenibile ~1 ora.', workout: 'Tempo run classico, cruise intervals.', focus: 'threshold' },
-                { name: 'Zona 5 (VO2max)', percent: [95, 100], description: 'VO2max. Il 20% che conta per la performance.', workout: 'Intervalli 2-6 min, recupero attivo.', focus: 'vo2max' },
-                { name: 'Zona 6 (Speed)', percent: [105, 115], description: 'Velocità. Neuromuscolare e anaerobico.', workout: 'Strides, hill sprints, ripetute corte.', focus: 'speed' }
+                { name: 'Recovery', basis: 'Più lento del General Aerobic', pace: (c) => ({ slow: c.mp * 1.25, fast: c.mp * 1.25, open: 'slower' }), description: 'Recupero puro. Molto facile: il ritmo non conta, conta non affaticarsi (FC sotto ~76% della massima).', workout: '20-45 min il giorno dopo allenamenti duri.', focus: 'recovery' },
+                { name: 'General Aerobic', basis: 'Ritmo maratona +15–25%', pace: (c) => ({ fast: c.mp * 1.15, slow: c.mp * 1.25 }), description: 'Base aerobica quotidiana. Il pane quotidiano del maratoneta.', workout: '45-90 min, conversazione possibile.', focus: 'endurance' },
+                { name: 'Long Run', basis: 'Ritmo maratona +10–20%', pace: (c) => ({ fast: c.mp * 1.10, slow: c.mp * 1.20 }), description: 'Fondo lungo per adattamenti metabolici e mentali. Parti sul lato lento e chiudi su quello veloce.', workout: 'Long run 90-150 min, progressione finale opzionale.', focus: 'endurance' },
+                { name: 'Marathon Pace', basis: 'Ritmo maratona previsto', pace: (c) => ({ fast: c.mp, slow: c.mp }), description: 'Ritmo gara maratona. Abitua corpo e mente al ritmo obiettivo.', workout: 'Porzioni a ritmo gara nel lungo (es. 26 km con 16 km a MP).', focus: 'endurance' },
+                { name: 'Lactate Threshold', basis: 'Ritmo gara 15 km – mezza', pace: (c) => ({ fast: c.race(15000), slow: c.race(21097.5) }), description: 'Soglia del lattato. Il ritmo che reggi in gara per circa un\'ora.', workout: 'Tempo run 20-40 min, o 2×20 min con breve recupero.', focus: 'threshold' },
+                { name: 'VO2max', basis: 'Ritmo gara 3 km – 5 km', pace: (c) => ({ fast: c.race(3000), slow: c.race(5000) }), description: 'Potenza aerobica massima. Cuore e polmoni al limite.', workout: 'Intervalli 600-1600m, recupero 50-90% del tempo di lavoro.', focus: 'vo2max' },
+                { name: 'Speed', basis: 'Ritmo gara del miglio o più veloce', pace: (c) => ({ fast: c.race(METERS_PER_MILE), slow: c.race(METERS_PER_MILE), open: 'faster' }), maxRep: 200, description: 'Neuromuscolare. Rapidità e meccanica di corsa, non fatica.', workout: 'Strides 80-150m con recupero completo.', focus: 'speed' }
             ]
         },
         hansons: {
             name: 'Hansons',
-            note: 'Hansons Marathon Method (fatica cumulativa). Ritmi originali derivati dal tempo gara: qui convertiti in % VO2max (approssimazione).',
+            note: 'Hansons Marathon Method. Tutti i ritmi derivano dal ritmo maratona obiettivo: usa la modalità "Obiettivo Tempo" sulla maratona per avere i ritmi del tuo piano.',
             zones: [
-                { name: 'Easy', percent: [55, 68], description: 'Facile vero. Nel metodo Hansons, "easy" significa davvero easy.', workout: 'Corsa quotidiana, recupero tra qualità.', focus: 'recovery' },
-                { name: 'Long Run', percent: [68, 75], description: 'Fondo lungo. Più corto ma più veloce del tradizionale.', workout: 'Max ~26 km, focus su ritmo, non distanza.', focus: 'endurance' },
-                { name: 'Marathon Pace', percent: [75, 84], description: 'Ritmo gara. Cuore del metodo per memorizzare il ritmo.', workout: 'Progressivi fino a ~16 km a marathon pace.', focus: 'endurance' },
-                { name: 'Tempo', percent: [84, 90], description: 'Soglia. Costruisce resistenza alla fatica mentale.', workout: '8-16 km continui a ritmo tempo.', focus: 'threshold' },
-                { name: 'Strength', percent: [90, 97], description: 'Forza specifica. VO2max per potenza aerobica.', workout: '3×3.2 km o 6×1.6 km con jog recovery.', focus: 'vo2max' },
-                { name: 'Speed', percent: [105, 115], description: 'Velocità. Meno comune nel metodo ma presente.', workout: 'Strides 100m post-easy run.', focus: 'speed' }
+                { name: 'Easy', basis: 'Ritmo maratona +1–2 min/miglio', pace: (c) => ({ fast: c.mp + 60 * PER_MILE, slow: c.mp + 120 * PER_MILE }), description: 'Facile vero. Nel metodo Hansons "easy" significa davvero easy: è la maggior parte del volume.', workout: 'Corsa quotidiana. Il lungo (max ~26 km) si corre in questo range, sul lato veloce.', focus: 'recovery' },
+                { name: 'Tempo (Marathon Pace)', basis: 'Ritmo maratona obiettivo', pace: (c) => ({ fast: c.mp, slow: c.mp }), description: 'Nel metodo Hansons il tempo run È il ritmo maratona: serve a memorizzarlo nella fatica.', workout: 'Da 8 fino a ~16 km continui a ritmo maratona.', focus: 'threshold' },
+                { name: 'Strength', basis: 'Ritmo maratona −10 s/miglio', pace: (c) => ({ fast: c.mp - 10 * PER_MILE, slow: c.mp - 10 * PER_MILE }), description: 'Ripetute lunghe appena più veloci del ritmo gara. Resistenza specifica.', workout: '6×1.6 km, 4×2.4 km, 3×3.2 km con recupero jog.', focus: 'vo2max' },
+                { name: 'Speed', basis: 'Ritmo gara 5 km – 10 km', pace: (c) => ({ fast: c.race(5000), slow: c.race(10000) }), description: 'Potenza aerobica nella prima metà del piano.', workout: '12×400m, 6×800m, 4×1200m con recupero jog.', focus: 'speed' }
             ]
         }
     };
@@ -261,11 +228,34 @@
     }
 
     function getZonePaces(vo2max, zone) {
+        if (typeof zone.pace === 'function') {
+            const race = (m) => calculateRaceTime(vo2max, m) / (m / 1000);
+            const p = zone.pace({ race, mp: race(42195) });
+            if (!(p.fast > 0) || !(p.slow > 0)) return null;
+            const ref = p.open === 'slower' ? p.slow : (p.open === 'faster' ? p.fast : (p.fast + p.slow) / 2);
+            return { fast: p.fast, slow: p.slow, open: p.open || null, ref, basis: zone.basis };
+        }
         const slow = calculateTrainingPace(vo2max, zone.percent[0]);
         const fast = calculateTrainingPace(vo2max, zone.percent[1]);
         const refPct = zone.ref || (zone.percent[0] + zone.percent[1]) / 2;
         const ref = calculateTrainingPace(vo2max, refPct);
-        return (slow && fast && ref) ? { slow, fast, ref, refPct } : null;
+        if (!(slow && fast && ref)) return null;
+        return { fast, slow, open: null, ref, basis: `${zone.percent[0]}–${zone.percent[1]}% VO2max` };
+    }
+
+    // Ritmo di una zona: intervallo, valore singolo o limite aperto (≥ / ≤)
+    function formatZonePace(p, format) {
+        if (p.open === 'slower') return `≥ ${formatPace(p.slow, format)}`;
+        if (p.open === 'faster') return `≤ ${formatPace(p.fast, format)}`;
+        if (Math.abs(p.slow - p.fast) < 0.5) return formatPace(p.fast, format);
+        return formatPaceRange(p.slow, p.fast, format);
+    }
+
+    function formatZoneSpeed(p) {
+        if (p.open === 'slower') return `≤ ${formatSpeedKmh(p.slow)}`;
+        if (p.open === 'faster') return `≥ ${formatSpeedKmh(p.fast)}`;
+        if (Math.abs(p.slow - p.fast) < 0.5) return formatSpeedKmh(p.fast);
+        return `${formatSpeedKmh(p.slow)}–${formatSpeedKmh(p.fast)}`;
     }
 
     // ============================================
@@ -344,7 +334,7 @@
         METERS_PER_MILE, DISTANCES, VO2MAX_LEVELS, LEVEL_SCALE, TRAINING_ZONES, REP_DISTANCES,
         toMeters, parseDistance, parseTime, formatTime, formatSplit, formatPace, formatPaceRange, formatSpeedKmh,
         formatDistance, oxygenCost, sustainableFraction, velocityForVO2, calculateVO2max, calculateRaceTime,
-        calculateTrainingPace, getZonePaces, getVO2maxLevel, levelScalePercent, isSameDistance,
+        calculateTrainingPace, getZonePaces, formatZonePace, formatZoneSpeed, getVO2maxLevel, levelScalePercent, isSameDistance,
         equivalentPerformances, evenSplits, repTimes, validateInput, validateVO2maxResult
     };
 

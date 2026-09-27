@@ -356,14 +356,14 @@
                     <button type="button" class="zone-header" aria-expanded="${isOpen}" aria-controls="zone-details-${index}">
                         <span class="zone-info">
                             <span class="zone-name">${escapeHtml(zone.name)}<span class="zone-expand-icon" aria-hidden="true">▶</span></span>
-                            <span class="zone-percent">${zone.percent[0]}–${zone.percent[1]}% VO2max</span>
+                            <span class="zone-percent">${escapeHtml(p.basis)}</span>
                         </span>
-                        <span class="zone-pace">${C.formatPaceRange(p.slow, p.fast, prefs.paceFormat)}</span>
+                        <span class="zone-pace">${C.formatZonePace(p, prefs.paceFormat)}</span>
                     </button>
                     <div class="zone-details" id="zone-details-${index}">
                         <div class="zone-description">${escapeHtml(zone.description)}</div>
                         <div class="zone-workout"><strong>Allenamento tipo:</strong> ${escapeHtml(zone.workout)}</div>
-                        <div class="zone-workout"><strong>Velocità:</strong> ${C.formatSpeedKmh(p.fast)}–${C.formatSpeedKmh(p.slow)} km/h (tapis roulant)</div>
+                        <div class="zone-workout"><strong>Velocità:</strong> ${C.formatZoneSpeed(p)} km/h (tapis roulant)</div>
                     </div>
                 </div>`;
         }).join('');
@@ -381,8 +381,8 @@
         el.repsBody.innerHTML = zones.map(zone => {
             const p = C.getZonePaces(vdot, zone);
             if (!p) return '';
-            // Le ripetute a ritmo velocità oltre gli 800m non hanno senso pratico
-            const cells = C.repTimes(p.ref).map(rt => `<td>${zone.focus === 'speed' && rt.meters > 800 ? '—' : C.formatSplit(rt.time)}</td>`).join('');
+            // Oltre maxRep la zona non si usa in pratica (es. ritmo R su 1600m)
+            const cells = C.repTimes(p.ref).map(rt => `<td>${zone.maxRep && rt.meters > zone.maxRep ? '—' : C.formatSplit(rt.time)}</td>`).join('');
             return `<tr><td>${escapeHtml(zone.name)}</td>${cells}</tr>`;
         }).join('');
     }
@@ -740,11 +740,11 @@
             ctx.fillText(zone.name, 150, y);
             ctx.fillStyle = COLORS.gold;
             ctx.textAlign = 'right';
-            ctx.fillText(C.formatPaceRange(p.slow, p.fast, 'km'), 930, y);
+            ctx.fillText(C.formatZonePace(p, 'km'), 930, y);
             ctx.font = '400 24px "Cormorant Garamond", serif';
             ctx.fillStyle = COLORS.faint;
             ctx.textAlign = 'left';
-            ctx.fillText(`${zone.percent[0]}–${zone.percent[1]}% VO2max`, 150, y + 36);
+            ctx.fillText(p.basis, 150, y + 36);
             y += step;
         });
         return canvas;
@@ -823,7 +823,7 @@
         ];
         coach.zones.forEach(zone => {
             const p = C.getZonePaces(state.result.vdot, zone);
-            if (p) lines.push(`${zone.name}: ${C.formatPaceRange(p.slow, p.fast, prefs.paceFormat === '400' || prefs.paceFormat === '200' ? 'km' : prefs.paceFormat)}`);
+            if (p) lines.push(`${zone.name}: ${C.formatZonePace(p, prefs.paceFormat === '400' || prefs.paceFormat === '200' ? 'km' : prefs.paceFormat)}`);
         });
         lines.push('', `Calcolato con Valhalla VO2 · ${buildShareUrl()}`);
         return lines.join('\n');

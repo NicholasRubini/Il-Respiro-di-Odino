@@ -60,7 +60,7 @@ test('ritmi di allenamento Daniels a VDOT 50 (tolleranza 3 s/km)', () => {
     assert.ok(Math.abs(I - 235) <= 3, `I ${I}`);   // 3:55/km
 });
 
-test('getZonePaces: fast < ref < slow', () => {
+test("getZonePaces: fast <= ref <= slow per ogni zona", () => {
     for (const coach of Object.values(C.TRAINING_ZONES)) {
         for (const z of coach.zones) {
             const p = C.getZonePaces(45, z);
@@ -97,4 +97,40 @@ test('levelScalePercent e getVO2maxLevel', () => {
 test('parseDistance accetta la virgola', () => {
     assert.equal(C.parseDistance('21,0975'), 21.0975);
     assert.ok(Number.isNaN(C.parseDistance('10km')));
+});
+
+const zone = (coach, name) => C.TRAINING_ZONES[coach].zones.find(z => z.name === name);
+// VDOT che corrisponde a una maratona in 3:00:00 (ritmo 4:15.9/km)
+const V3H = C.calculateVO2max(42195, 3 * 3600);
+const MP3H = 3 * 3600 / 42.195;
+
+test('solo i metodi con regole ricavabili da un tempo gara', () => {
+    assert.deepEqual(Object.keys(C.TRAINING_ZONES), ['daniels', 'pfitzinger', 'hansons']);
+});
+
+test('Daniels M = ritmo maratona previsto', () => {
+    const p = C.getZonePaces(V3H, zone('daniels', 'Marathon (M)'));
+    assert.ok(Math.abs(p.fast - MP3H) < 0.5);
+    assert.equal(C.formatZonePace(p, 'km'), '4:16/km');
+});
+
+test('Hansons: tempo = MP, strength = MP −10 s/miglio, easy = MP +1–2 min/miglio', () => {
+    const tempo = C.getZonePaces(V3H, zone('hansons', 'Tempo (Marathon Pace)'));
+    assert.ok(Math.abs(tempo.fast - MP3H) < 0.5);
+    const strength = C.getZonePaces(V3H, zone('hansons', 'Strength'));
+    assert.ok(Math.abs((MP3H - strength.fast) * C.METERS_PER_MILE / 1000 - 10) < 0.1);
+    const easy = C.getZonePaces(V3H, zone('hansons', 'Easy'));
+    assert.ok(Math.abs((easy.fast - MP3H) * C.METERS_PER_MILE / 1000 - 60) < 0.1);
+    assert.ok(Math.abs((easy.slow - MP3H) * C.METERS_PER_MILE / 1000 - 120) < 0.1);
+});
+
+test('Pfitzinger: GA = MP +15–25%, LT = ritmo 15 km–mezza, VO2max = ritmo 3–5 km', () => {
+    const ga = C.getZonePaces(V3H, zone('pfitzinger', 'General Aerobic'));
+    assert.ok(Math.abs(ga.fast / MP3H - 1.15) < 1e-3 && Math.abs(ga.slow / MP3H - 1.25) < 1e-3);
+    const lt = C.getZonePaces(V3H, zone('pfitzinger', 'Lactate Threshold'));
+    assert.ok(Math.abs(lt.slow - C.calculateRaceTime(V3H, 21097.5) / 21.0975) < 0.5);
+    const vo2 = C.getZonePaces(V3H, zone('pfitzinger', 'VO2max'));
+    assert.ok(Math.abs(vo2.fast - C.calculateRaceTime(V3H, 3000) / 3) < 0.5);
+    const rec = C.getZonePaces(V3H, zone('pfitzinger', 'Recovery'));
+    assert.ok(C.formatZonePace(rec, 'km').startsWith('≥ '));
 });
