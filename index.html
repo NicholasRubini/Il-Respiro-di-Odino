@@ -114,6 +114,7 @@
                     <a href="#anchorRaces">Gare</a>
                     <a href="#anchorZones">Ritmi</a>
                     <a href="#anchorReps">Pista</a>
+                    <a href="#anchorPlan">Piano</a>
                     <a href="#historySection" id="navHistory" hidden>Saghe</a>
                 </nav>
 
@@ -163,6 +164,7 @@
                     </div>
                     <p class="insight-text" id="insightText"></p>
                     <p class="insight-recommendation" id="insightRecommendation"></p>
+                    <a class="insight-link" href="#anchorPlan">Vuoi un programma costruito su questi ritmi? ↓</a>
                 </section>
 
                 <!-- Export Section -->
@@ -273,6 +275,35 @@
                         </table>
                     </div>
                     <p class="info-note">Tempo di ogni frazione al ritmo di riferimento della zona: centro dell'intervallo (per Daniels: T 88%, I 97,5%, R 105% del VO2max).</p>
+
+                    <!-- Plan CTA -->
+                    <section class="plan-cta" id="anchorPlan" aria-labelledby="planTitle">
+                        <div class="futhark-band" aria-hidden="true">ᚠᚢᚦᚨᚱᚲᚷᚹ · ᚺᚾᛁᛃᛇᛈᛉᛊ · ᛏᛒᛖᛗᛚᛜᛞᛟ</div>
+                        <h2 class="plan-title" id="planTitle">Dai ritmi al programma</h2>
+                        <p class="plan-lead">I numeri dicono dove sei. Per migliorarli serve un piano, e la sala pesi fa correre più forte: il lavoro di forza migliora l'economia di corsa.</p>
+                        <p class="plan-question" id="planQuestion">Oltre alla corsa, vuoi aumentare anche la forza massima?</p>
+                        <div class="plan-choice" role="group" aria-labelledby="planQuestion">
+                            <button type="button" class="plan-choice-btn" data-plan="hybrid" aria-pressed="false">Sì, voglio anche i carichi</button>
+                            <button type="button" class="plan-choice-btn" data-plan="running" aria-pressed="false">No, voglio correre più forte</button>
+                        </div>
+
+                        <div class="plan-offer" data-offer="hybrid" hidden>
+                            <div class="plan-offer-rune" aria-hidden="true">ᛏ</div>
+                            <h3 class="plan-offer-name">Scheda Hybrid Training</h3>
+                            <p class="plan-offer-text">Corsa e forza massima nello stesso programma: per chi vuole diventare più veloce senza rinunciare ai carichi in sala pesi.</p>
+                            <a class="btn-calculate plan-offer-cta" id="ctaHybrid" href="https://www.nicholasrubini.it/hybrid.html" target="_blank" rel="noopener">Scopri la scheda Hybrid</a>
+                        </div>
+
+                        <div class="plan-offer" data-offer="running" hidden>
+                            <div class="plan-offer-rune" aria-hidden="true">ᛖ</div>
+                            <h3 class="plan-offer-name">Performance AI Athlete · Running</h3>
+                            <p class="plan-offer-text">Il programma per chi vuole correre più forte, con il lavoro in sala pesi pensato al servizio della corsa.</p>
+                            <a class="btn-calculate plan-offer-cta" id="ctaRunning" href="https://app.preparazioneatletica.com/sport/running" target="_blank" rel="noopener">Scopri il programma Running</a>
+                        </div>
+
+                        <p class="plan-context" id="planContext"></p>
+                        <div class="futhark-band" aria-hidden="true">ᛟᛞᛜᛚᛗᛖᛒᛏ · ᛊᛉᛈᛇᛃᛁᚾᚺ · ᚹᚷᚲᚱᚨᚦᚢᚠ</div>
+                    </section>
                 </section>
 
                 <!-- History -->

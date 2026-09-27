@@ -42,7 +42,8 @@
         unit: 'km',
         time: '',
         targetDistance: '21097.5',
-        targetTime: ''
+        targetTime: '',
+        plan: null
     }, store.get(STORAGE_KEYS.prefs, {}));
 
     if (!C.TRAINING_ZONES[prefs.coach]) prefs.coach = 'daniels';
@@ -274,6 +275,40 @@
         renderZones();
         renderReps();
         renderHistory();
+        renderPlanCta();
+    }
+
+    // ============================================
+    // INVITO ALL'AZIONE (programmi a pagamento)
+    // ============================================
+
+    const PLAN_URLS = {
+        hybrid: 'https://www.nicholasrubini.it/hybrid.html',
+        running: 'https://app.preparazioneatletica.com/sport/running'
+    };
+
+    function planUrl(plan) {
+        const url = new URL(PLAN_URLS[plan]);
+        url.searchParams.set('utm_source', 'valhalla-vo2');
+        url.searchParams.set('utm_medium', 'tool');
+        url.searchParams.set('utm_campaign', `cta_${plan}`);
+        if (state.result) url.searchParams.set('utm_content', `vdot_${Math.round(state.result.vdot)}`);
+        return url.toString();
+    }
+
+    function renderPlanCta() {
+        const choice = prefs.plan;
+        setPressed(document.querySelectorAll('.plan-choice-btn'), b => b.dataset.plan === choice);
+        document.querySelectorAll('.plan-offer').forEach(o => { o.hidden = o.dataset.offer !== choice; });
+        $('ctaHybrid').href = planUrl('hybrid');
+        $('ctaRunning').href = planUrl('running');
+        const ctx = $('planContext');
+        if (choice && state.result) {
+            const t = C.getZonePaces(state.result.vdot, C.TRAINING_ZONES.daniels.zones.find(z => z.focus === 'threshold'));
+            ctx.textContent = `Il tuo punto di partenza: VO2max ${state.result.vdot.toFixed(1)} · soglia ${C.formatPace(t.ref, 'km')}`;
+        } else {
+            ctx.textContent = '';
+        }
     }
 
     function renderLevelLabels() {
@@ -1133,6 +1168,14 @@
         }
         const load = e.target.closest('.history-load');
         if (load) loadFromHistory(parseInt(load.dataset.index, 10));
+    });
+
+    document.querySelectorAll('.plan-choice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            prefs.plan = btn.dataset.plan;
+            savePrefs();
+            renderPlanCta();
+        });
     });
 
     $('btnClearHistory').addEventListener('click', () => {
