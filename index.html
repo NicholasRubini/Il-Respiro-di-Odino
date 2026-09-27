@@ -33,7 +33,7 @@
             <div class="rune-symbol" aria-hidden="true">ᚠ ᚢ ᚦ</div>
             <h1>Valhalla VO2</h1>
             <p class="subtitle">Il Respiro di Odino</p>
-            <div class="divider" aria-hidden="true"></div>
+            <div class="divider" aria-hidden="true"><svg class="othala" viewBox="100 70 312 350" fill="none" stroke="currentColor" stroke-width="30" stroke-linejoin="miter" stroke-linecap="square"><path d="M160 196 L256 100 L352 196 M160 196 L352 388 M352 196 L160 388"/></svg></div>
         </header>
 
         <main id="main">
@@ -109,8 +109,17 @@
             </form>
 
             <div id="results" aria-live="polite">
+                <nav class="results-nav" id="resultsNav" aria-label="Sezioni dei risultati">
+                    <a href="#vo2maxDisplay" class="active">Valore</a>
+                    <a href="#anchorRaces">Gare</a>
+                    <a href="#anchorZones">Ritmi</a>
+                    <a href="#anchorReps">Pista</a>
+                    <a href="#historySection" id="navHistory" hidden>Saghe</a>
+                </nav>
+
                 <!-- VO2max Display -->
                 <section class="vo2max-display" id="vo2maxDisplay" tabindex="-1" aria-labelledby="vo2maxLabel">
+                    <div class="futhark-band" aria-hidden="true">ᚠᚢᚦᚨᚱᚲᚷᚹ · ᚺᚾᛁᛃᛇᛈᛉᛊ · ᛏᛒᛖᛗᛚᛜᛞᛟ</div>
                     <h2 class="vo2max-label" id="vo2maxLabel">VO2max Stimato</h2>
                     <div class="vo2max-value" id="vo2maxValue">--</div>
                     <div class="vo2max-unit">ml/kg/min · VDOT</div>
@@ -126,6 +135,7 @@
                         <div class="level-title" id="levelTitle">--</div>
                         <div class="level-description" id="levelDescription">--</div>
                     </div>
+                    <div class="futhark-band" aria-hidden="true">ᛟᛞᛜᛚᛗᛖᛒᛏ · ᛊᛉᛈᛇᛃᛁᚾᚺ · ᚹᚷᚲᚱᚨᚦᚢᚠ</div>
                 </section>
 
                 <!-- Target vs current comparison -->
@@ -148,7 +158,7 @@
                 <!-- Training Insight -->
                 <section class="training-insight" id="trainingInsight">
                     <div class="insight-header">
-                        <span class="insight-icon" aria-hidden="true">⚔️</span>
+                        <span class="insight-icon" aria-hidden="true" title="Tīwaz, la runa di Týr">ᛏ</span>
                         <h2 class="insight-title">Consiglio del Guerriero</h2>
                     </div>
                     <p class="insight-text" id="insightText"></p>
@@ -193,7 +203,7 @@
                     </div>
 
                     <!-- Equivalent Performances -->
-                    <div class="section-header">
+                    <div class="section-header" id="anchorRaces">
                         <h2 class="section-title">Prestazioni Equivalenti</h2>
                         <div class="toggle-group" role="group" aria-label="Unità del ritmo">
                             <button type="button" class="toggle-btn active" data-pace-unit="km" aria-pressed="true">/km</button>
@@ -216,7 +226,7 @@
                     <p class="info-note">Previsioni valide se sei allenato in modo specifico per la distanza. Sulla maratona tendono a essere ottimistiche con volumi settimanali bassi.</p>
 
                     <!-- Training Zones -->
-                    <div class="zones-section">
+                    <div class="zones-section" id="anchorZones">
                         <div class="section-header">
                             <h2 class="section-title">Ritmi di Allenamento</h2>
                             <div class="pace-format-toggle" role="group" aria-label="Formato del ritmo">
@@ -252,7 +262,7 @@
                     </div>
 
                     <!-- Rep times -->
-                    <div class="section-header">
+                    <div class="section-header" id="anchorReps">
                         <h2 class="section-title">Tempi per Ripetuta</h2>
                         <span class="section-meta">in pista</span>
                     </div>
@@ -309,7 +319,7 @@
                 <img id="modalImage" class="modal-image" src="" alt="Anteprima dell'immagine da condividere">
             </div>
             <div class="modal-hint" id="modalHint">
-                <strong>📱 iPhone:</strong> tieni premuto sull'immagine → "Aggiungi a Foto"
+                <strong>iPhone:</strong> tieni premuto sull'immagine → "Aggiungi a Foto"
             </div>
             <div class="modal-actions">
                 <button type="button" class="modal-btn modal-btn-secondary" id="modalClose">Chiudi</button>

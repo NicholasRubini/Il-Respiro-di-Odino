@@ -43,6 +43,9 @@ body {
     padding-bottom: calc(var(--safe-bottom) + 20px);
     line-height: 1.6;
     overflow-x: hidden;
+    /* Cormorant usa numeri "all'antica" di altezza irregolare: forziamo cifre allineate */
+    font-variant-numeric: lining-nums;
+    font-feature-settings: "lnum" 1;
 }
 
 body::before {
@@ -52,9 +55,10 @@ body::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background: 
-        radial-gradient(ellipse at 50% 0%, rgba(201, 162, 39, 0.03) 0%, transparent 50%),
-        radial-gradient(circle at 20% 80%, rgba(201, 162, 39, 0.02) 0%, transparent 30%);
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(201, 162, 39, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 20% 80%, rgba(201, 162, 39, 0.025) 0%, transparent 30%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.79 0 0 0 0 0.64 0 0 0 0 0.15 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
     pointer-events: none;
     z-index: 0;
 }
@@ -102,10 +106,32 @@ h1 {
 }
 
 .divider {
-    width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 18px auto 4px;
+    max-width: 240px;
+    color: var(--gold-primary);
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
-    margin: 20px auto;
+    background: linear-gradient(90deg, transparent, var(--gold-primary));
+}
+
+.divider::after {
+    background: linear-gradient(90deg, var(--gold-primary), transparent);
+}
+
+.divider svg {
+    width: 22px;
+    height: 26px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 6px var(--gold-glow));
 }
 
 /* Mode Tabs */
@@ -202,6 +228,7 @@ input.error {
 
 .input-distance {
     flex: 1;
+    min-width: 0;
 }
 
 .input-unit {
@@ -214,7 +241,7 @@ input.error {
 }
 
 .input-time {
-    flex: 1;
+    width: 100%;
     text-align: center;
     letter-spacing: 0.05em;
 }
@@ -384,7 +411,6 @@ input.error {
     background: var(--bg-input);
     border-radius: 4px;
     margin-bottom: 12px;
-    overflow: hidden;
 }
 
 .level-bar-gradient {
@@ -393,14 +419,9 @@ input.error {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(90deg, 
-        #c75050 0%, 
-        #c9a227 25%, 
-        #4a9c6d 50%, 
-        #3a8c9d 75%, 
-        #8a5dc9 100%
-    );
-    opacity: 0.6;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #2e2512 0%, #6b5418 35%, #c9a227 75%, #f3dc8c 100%);
+    box-shadow: inset 0 0 0 1px rgba(201, 162, 39, 0.25);
 }
 
 .level-bar-marker {
@@ -408,10 +429,10 @@ input.error {
     top: -4px;
     width: 16px;
     height: 16px;
-    background: var(--gold-primary);
+    margin-left: -8px;
+    background: var(--gold-light);
     border: 2px solid var(--bg-primary);
-    border-radius: 50%;
-    transform: translateX(-50%);
+    transform: rotate(45deg);
     box-shadow: 0 0 10px var(--gold-glow);
     transition: left 0.5s ease;
 }
@@ -466,7 +487,16 @@ input.error {
 }
 
 .insight-icon {
-    font-size: 1.3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border-active);
+    border-radius: 50%;
+    font-size: 1.05rem;
+    color: var(--gold-primary);
+    line-height: 1;
 }
 
 .insight-title {
@@ -820,8 +850,7 @@ input.error {
 .zones-export {
     display: flex;
     gap: 10px;
-    margin-top: 16px;
-    padding-top: 16px;
+    padding: 14px 16px 16px;
     border-top: 1px solid var(--border-subtle);
 }
 
@@ -1251,6 +1280,9 @@ body.modal-open {
     text-align: left;
     padding-left: 14px;
     white-space: normal;
+}
+
+.reps-table td:first-child {
     font-size: 0.9rem;
 }
 
@@ -1459,4 +1491,197 @@ body.modal-open {
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
+}
+
+/* ============================================
+   IDENTITÀ NORRENA: ornamenti, rune, incisioni
+   ============================================ */
+
+/* Angoli "incisi" (ferro battuto) sulle schede principali */
+.input-section,
+.vo2max-display,
+.training-insight,
+.compare-card {
+    position: relative;
+}
+
+.input-section::after,
+.vo2max-display::after,
+.training-insight::after,
+.compare-card::after {
+    --c: rgba(201, 162, 39, 0.55);
+    --l: 14px;
+    content: '';
+    position: absolute;
+    inset: 6px;
+    pointer-events: none;
+    background:
+        linear-gradient(var(--c), var(--c)) top left / var(--l) 1px no-repeat,
+        linear-gradient(var(--c), var(--c)) top left / 1px var(--l) no-repeat,
+        linear-gradient(var(--c), var(--c)) top right / var(--l) 1px no-repeat,
+        linear-gradient(var(--c), var(--c)) top right / 1px var(--l) no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom left / var(--l) 1px no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom left / 1px var(--l) no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom right / var(--l) 1px no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom right / 1px var(--l) no-repeat;
+}
+
+.vo2max-display {
+    background:
+        radial-gradient(ellipse at 50% 30%, rgba(201, 162, 39, 0.08), transparent 65%),
+        var(--bg-card);
+    border-color: var(--border-active);
+    overflow: hidden;
+}
+
+/* Fascia con il fuþark antico (le 24 rune, divise nei tre ættir) */
+.futhark-band {
+    font-size: 0.72rem;
+    letter-spacing: 0.3em;
+    color: var(--gold-primary);
+    opacity: 0.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: center;
+    line-height: 1;
+    user-select: none;
+}
+
+.vo2max-display .futhark-band:first-child {
+    margin: -8px -20px 18px;
+}
+
+.vo2max-display .futhark-band:last-child {
+    margin: 18px -20px -8px;
+}
+
+/* Il numero appare "inciso" */
+.vo2max-value.carve {
+    animation: carve 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes carve {
+    0% { opacity: 0; filter: blur(10px); letter-spacing: 0.25em; text-shadow: 0 0 0 transparent; }
+    60% { opacity: 1; filter: blur(0); text-shadow: 0 0 60px rgba(240, 210, 120, 0.8); }
+    100% { letter-spacing: normal; text-shadow: 0 0 30px var(--gold-glow); }
+}
+
+/* Rune come icone */
+.rune-inline {
+    display: inline-block;
+    min-width: 1.2em;
+    color: var(--gold-primary);
+    font-size: 1.05em;
+    text-align: center;
+}
+
+.zone-rune {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    border: 1px solid var(--border-active);
+    border-radius: 4px;
+    color: var(--gold-primary);
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.zone-info {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Rivetto a rombo davanti ai titoli di sezione */
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--gold-primary);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+}
+
+/* Navigazione fissa tra le sezioni dei risultati */
+.results-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: none;
+    gap: 4px;
+    margin: 0 -20px 20px;
+    padding: calc(var(--safe-top) + 8px) 20px 8px;
+    background: rgba(10, 10, 10, 0.88);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-subtle);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.results-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.results-nav.visible {
+    display: flex;
+}
+
+.results-nav a {
+    flex: 1 0 auto;
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.results-nav a.active {
+    color: var(--gold-primary);
+    border-color: var(--border-active);
+    background: var(--gold-dim);
+}
+
+#vo2maxDisplay,
+#anchorRaces,
+#anchorZones,
+#anchorReps,
+#historySection {
+    scroll-margin-top: calc(var(--safe-top) + 64px);
+}
+
+@media (max-width: 380px) {
+    .results-nav {
+        margin: 0 -16px 20px;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .results-nav a {
+        padding: 8px 6px;
+        letter-spacing: 0.08em;
+    }
+}
+
+/* I controlli dei form non ereditano le impostazioni tipografiche */
+button,
+input,
+select {
+    font-variant-numeric: lining-nums;
+    font-feature-settings: "lnum" 1;
 }
