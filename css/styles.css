@@ -1658,6 +1658,7 @@ body.modal-open {
 }
 
 #vo2maxDisplay,
+#anchorPlan,
 #anchorRaces,
 #anchorZones,
 #anchorReps,
@@ -1684,4 +1685,224 @@ input,
 select {
     font-variant-numeric: lining-nums;
     font-feature-settings: "lnum" 1;
+}
+
+/* ============================================
+   INVITO ALL'AZIONE: dai ritmi al programma
+   ============================================ */
+
+.insight-link {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 0.95rem;
+    color: var(--gold-primary);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-active);
+}
+
+.insight-link:hover {
+    border-bottom-color: var(--gold-primary);
+}
+
+.plan-cta {
+    position: relative;
+    margin: 8px 0 32px;
+    padding: 22px 20px;
+    text-align: center;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(201, 162, 39, 0.12), transparent 70%),
+        var(--bg-card);
+    border: 1px solid var(--border-active);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.plan-cta::after {
+    --c: rgba(201, 162, 39, 0.55);
+    --l: 14px;
+    content: '';
+    position: absolute;
+    inset: 6px;
+    pointer-events: none;
+    background:
+        linear-gradient(var(--c), var(--c)) top left / var(--l) 1px no-repeat,
+        linear-gradient(var(--c), var(--c)) top left / 1px var(--l) no-repeat,
+        linear-gradient(var(--c), var(--c)) top right / var(--l) 1px no-repeat,
+        linear-gradient(var(--c), var(--c)) top right / 1px var(--l) no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom left / var(--l) 1px no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom left / 1px var(--l) no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom right / var(--l) 1px no-repeat,
+        linear-gradient(var(--c), var(--c)) bottom right / 1px var(--l) no-repeat;
+}
+
+.plan-cta .futhark-band:first-child {
+    margin: -6px -20px 18px;
+}
+
+.plan-cta .futhark-band:last-child {
+    margin: 18px -20px -6px;
+}
+
+.plan-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+}
+
+.plan-lead {
+    margin-top: 10px;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.plan-question {
+    margin-top: 18px;
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold-primary);
+}
+
+.plan-choice {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.plan-choice-btn {
+    font-family: var(--font-body);
+    font-size: 0.98rem;
+    line-height: 1.3;
+    color: var(--text-primary);
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 12px 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.plan-choice-btn:hover {
+    border-color: var(--border-active);
+}
+
+.plan-choice-btn.active {
+    color: var(--gold-primary);
+    border-color: var(--gold-primary);
+    background: var(--gold-dim);
+}
+
+.plan-offer {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-subtle);
+    animation: fadeIn 0.4s ease;
+}
+
+.plan-offer-rune {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-active);
+    border-radius: 50%;
+    color: var(--gold-primary);
+    font-size: 1.2rem;
+}
+
+.plan-offer-name {
+    margin-top: 10px;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--text-primary);
+}
+
+.plan-offer-text {
+    margin-top: 8px;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.plan-offer-cta {
+    display: block;
+    text-decoration: none;
+    text-align: center;
+    margin-top: 16px;
+}
+
+.plan-context {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.plan-context:empty {
+    display: none;
+}
+
+.plan-choice-btn strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.plan-choice-btn span {
+    display: block;
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+}
+
+.plan-choice-btn.active span {
+    color: var(--text-primary);
+}
+
+.plan-offer-list {
+    list-style: none;
+    margin: 14px auto 0;
+    max-width: 360px;
+    text-align: left;
+}
+
+.plan-offer-list li {
+    position: relative;
+    padding-left: 20px;
+    margin-top: 6px;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.plan-offer-list li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0.62em;
+    width: 6px;
+    height: 6px;
+    background: var(--gold-primary);
+    transform: rotate(45deg);
+}
+
+.plan-offer-price {
+    margin-top: 14px;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+.plan-offer-price span {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.15rem;
+    color: var(--gold-primary);
 }
