@@ -1,0 +1,8 @@
+{
+  "name": "il-respiro-di-odino",
+  "private": true,
+  "description": "Valhalla VO2 — calcolatore VDOT, prestazioni equivalenti e ritmi di allenamento",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  }
+}
