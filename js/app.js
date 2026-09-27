@@ -107,12 +107,28 @@
         modalImage: $('modalImage'),
         modalClose: $('modalClose'),
         modalShare: $('modalShare'),
-        toast: $('toast')
+        toast: $('toast'),
+        resultsNav: $('resultsNav'),
+        navHistory: $('navHistory')
     };
 
     // ============================================
     // UTILITY
     // ============================================
+
+    // Una runa per tipo di zona. Significati dai poemi runici (norvegese, islandese, anglosassone).
+    const FOCUS_RUNES = {
+        recovery: { rune: 'ᛚ', name: 'Laguz, l\'acqua' },
+        endurance: { rune: 'ᚱ', name: 'Raidō, il viaggio' },
+        threshold: { rune: 'ᚦ', name: 'Thurisaz, la spina' },
+        vo2max: { rune: 'ᛊ', name: 'Sōwilō, il sole' },
+        speed: { rune: 'ᛖ', name: 'Ehwaz, il cavallo' }
+    };
+
+    function runeBadge(focus) {
+        const r = FOCUS_RUNES[focus];
+        return r ? `<span class="zone-rune" title="${r.name}" aria-hidden="true">${r.rune}</span>` : '';
+    }
 
     function escapeHtml(str) {
         return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -249,6 +265,7 @@
         el.trainingInsight.classList.add('visible');
         el.exportSection.classList.add('visible');
         el.resultsSection.classList.add('visible');
+        el.resultsNav.classList.add('visible');
         renderSummary();
         renderComparison();
         renderInsight();
@@ -270,6 +287,9 @@
         const level = C.getVO2maxLevel(r.vdot);
         el.vo2maxLabel.textContent = r.mode === 'target' ? 'VO2max Richiesto' : 'VO2max Stimato';
         el.vo2maxValue.textContent = r.vdot.toFixed(1);
+        el.vo2maxValue.classList.remove('carve');
+        void el.vo2maxValue.offsetWidth; // riavvia l'animazione di "incisione"
+        el.vo2maxValue.classList.add('carve');
         el.vo2maxSource.textContent = `${r.mode === 'target' ? 'Obiettivo' : 'Da'}: ${C.formatDistance(r.meters)} in ${C.formatTime(r.seconds)} (${C.formatPace(r.seconds / (r.meters / 1000), 'km')})`;
         el.levelMarker.style.left = `${C.levelScalePercent(r.vdot)}%`;
         el.levelTitle.textContent = level.title;
@@ -320,7 +340,7 @@
             recommendation = 'Considera analisi biomeccanica e periodizzazione avanzata.';
         }
         el.insightText.textContent = insight;
-        el.insightRecommendation.textContent = '💡 ' + recommendation;
+        el.insightRecommendation.innerHTML = `<span class="rune-inline" title="Kenaz, la torcia" aria-hidden="true">ᚲ</span> ${escapeHtml(recommendation)}`;
     }
 
     function renderSplits() {
@@ -354,6 +374,7 @@
             return `
                 <div class="zone-row${isOpen ? ' expanded' : ''}" data-index="${index}" data-focus="${zone.focus}">
                     <button type="button" class="zone-header" aria-expanded="${isOpen}" aria-controls="zone-details-${index}">
+                        ${runeBadge(zone.focus)}
                         <span class="zone-info">
                             <span class="zone-name">${escapeHtml(zone.name)}<span class="zone-expand-icon" aria-hidden="true">▶</span></span>
                             <span class="zone-percent">${escapeHtml(p.basis)}</span>
@@ -383,7 +404,7 @@
             if (!p) return '';
             // Oltre maxRep la zona non si usa in pratica (es. ritmo R su 1600m)
             const cells = C.repTimes(p.ref).map(rt => `<td>${zone.maxRep && rt.meters > zone.maxRep ? '—' : C.formatSplit(rt.time)}</td>`).join('');
-            return `<tr><td>${escapeHtml(zone.name)}</td>${cells}</tr>`;
+            return `<tr><td><span class="rune-inline" aria-hidden="true">${FOCUS_RUNES[zone.focus].rune}</span> ${escapeHtml(zone.name)}</td>${cells}</tr>`;
         }).join('');
     }
 
@@ -428,6 +449,7 @@
     }
 
     function renderHistory() {
+        el.navHistory.hidden = !state.history.length;
         if (!state.history.length) { el.historySection.hidden = true; return; }
         el.historySection.hidden = false;
         renderSparkline();
@@ -545,7 +567,9 @@
     // EXPORT IMMAGINI (Instagram Stories 1080×1920)
     // ============================================
 
-    const COLORS = { bg: '#0a0a0a', card: 'rgba(22, 22, 25, 0.92)', gold: '#c9a227', text: '#e8e6e3', muted: '#9a9590', faint: '#8a8480', border: 'rgba(201, 162, 39, 0.3)' };
+    const COLORS = { bg: '#0a0a0a', card: 'rgba(20, 19, 17, 0.94)', gold: '#c9a227', goldLight: '#e6c65c', text: '#e8e6e3', muted: '#9a9590', faint: '#8a8480', border: 'rgba(201, 162, 39, 0.35)' };
+    const FUTHARK = 'ᚠᚢᚦᚨᚱᚲᚷᚹ·ᚺᚾᛁᛃᛇᛈᛉᛊ·ᛏᛒᛖᛗᛚᛜᛞᛟ';
+    const W = 1080, H = 1920;
 
     function roundRectPath(ctx, x, y, w, h, r) {
         if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); return; }
@@ -562,7 +586,7 @@
     function ensureFonts() {
         if (!document.fonts || !document.fonts.load) return Promise.resolve();
         if (!fontsReady) {
-            const loads = ['600 56px Cinzel', '700 200px Cinzel', 'italic 28px "Cormorant Garamond"', '500 36px "Cormorant Garamond"', '300 40px "Cormorant Garamond"']
+            const loads = ['600 56px Cinzel', '700 200px Cinzel', 'italic 28px "Cormorant Garamond"', '500 36px "Cormorant Garamond"', '600 36px Cinzel', '300 40px "Cormorant Garamond"']
                 .map(f => document.fonts.load(f).catch(() => null));
             const timeout = new Promise(res => setTimeout(res, 2500));
             fontsReady = Promise.race([Promise.all(loads), timeout]);
@@ -570,44 +594,169 @@
         return fontsReady;
     }
 
+    function spacedText(ctx, text, x, y, spacing) {
+        // letterSpacing non è supportato ovunque nel canvas: spaziatura manuale, centrata su x
+        const chars = Array.from(text);
+        const widths = chars.map(c => ctx.measureText(c).width);
+        const total = widths.reduce((a, w) => a + w, 0) + spacing * (chars.length - 1);
+        let cx = x - total / 2;
+        const align = ctx.textAlign;
+        ctx.textAlign = 'left';
+        chars.forEach((c, i) => { ctx.fillText(c, cx, y); cx += widths[i] + spacing; });
+        ctx.textAlign = align;
+    }
+
+    function drawFuthark(ctx, y, reversed) {
+        const runes = Array.from(reversed ? Array.from(FUTHARK).reverse().join('') : FUTHARK);
+        ctx.font = '30px serif';
+        ctx.fillStyle = 'rgba(201, 162, 39, 0.4)';
+        ctx.textAlign = 'center';
+        const left = 130, right = W - 130;
+        const step = (right - left) / (runes.length - 1);
+        runes.forEach((r, i) => ctx.fillText(r, left + i * step, y));
+    }
+
+    function drawOthala(ctx, cx, cy, size) {
+        // Runa ᛟ, la stessa dell'icona dell'app (path in coordinate 512×512)
+        const k = size / 300;
+        ctx.save();
+        ctx.translate(cx - 256 * k, cy - 244 * k);
+        ctx.scale(k, k);
+        ctx.strokeStyle = COLORS.gold;
+        ctx.lineWidth = 30;
+        ctx.lineJoin = 'miter';
+        ctx.lineCap = 'square';
+        ctx.shadowColor = 'rgba(201, 162, 39, 0.6)';
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.moveTo(160, 196); ctx.lineTo(256, 100); ctx.lineTo(352, 196);
+        ctx.moveTo(160, 196); ctx.lineTo(352, 388);
+        ctx.moveTo(352, 196); ctx.lineTo(160, 388);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawCorners(ctx, x, y, w, h, len, color) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        [[x, y, 1, 1], [x + w, y, -1, 1], [x, y + h, 1, -1], [x + w, y + h, -1, -1]].forEach(([px, py, dx, dy]) => {
+            ctx.moveTo(px + dx * len, py);
+            ctx.lineTo(px, py);
+            ctx.lineTo(px, py + dy * len);
+        });
+        ctx.stroke();
+    }
+
+    function drawDiamond(ctx, x, y, size, color) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x, y - size);
+        ctx.lineTo(x + size, y);
+        ctx.lineTo(x, y + size);
+        ctx.lineTo(x - size, y);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    // Cifre in Cinzel (allineate, nel canvas non si possono attivare i numeri "lnum" di Cormorant),
+    // il resto (/km, trattini) in Cormorant. Es. "4:40/km – 4:54/km".
+    function drawNumber(ctx, text, x, y, align, size, color) {
+        const runs = String(text).match(/[\d:.,'"]+|[^\d:.,'"]+/g) || [];
+        const fonts = { num: `600 ${size}px Cinzel, serif`, txt: `400 ${Math.round(size * 0.82)}px "Cormorant Garamond", serif` };
+        const parts = runs.map(t => {
+            const kind = /^[\d:.,'"]+$/.test(t) ? 'num' : 'txt';
+            ctx.font = fonts[kind];
+            return { t, kind, w: ctx.measureText(t).width };
+        });
+        const total = parts.reduce((a, p) => a + p.w, 0);
+        let cx = align === 'right' ? x - total : (align === 'center' ? x - total / 2 : x);
+        const prevAlign = ctx.textAlign;
+        ctx.textAlign = 'left';
+        parts.forEach(p => {
+            ctx.font = fonts[p.kind];
+            ctx.fillStyle = p.kind === 'num' ? color : COLORS.muted;
+            ctx.fillText(p.t, cx, y);
+            cx += p.w;
+        });
+        ctx.textAlign = prevAlign;
+    }
+
+    // Testo in Cormorant con eventuali cifre in Cinzel (es. "10 km", "59–74% VO2max")
+    function drawMixed(ctx, text, x, y, align, size, color, style) {
+        const runs = String(text).match(/[\d:.,]+|[^\d:.,]+/g) || [];
+        const txtFont = `${style || '500'} ${size}px "Cormorant Garamond", serif`;
+        const numFont = `500 ${Math.round(size * 0.78)}px Cinzel, serif`;
+        const parts = runs.map(t => {
+            const isNum = /^[\d:.,]+$/.test(t) && /\d/.test(t);
+            ctx.font = isNum ? numFont : txtFont;
+            return { t, font: ctx.font, w: ctx.measureText(t).width };
+        });
+        const total = parts.reduce((a, p) => a + p.w, 0);
+        let cx = align === 'right' ? x - total : (align === 'center' ? x - total / 2 : x);
+        const prevAlign = ctx.textAlign;
+        ctx.textAlign = 'left';
+        ctx.fillStyle = color;
+        parts.forEach(p => { ctx.font = p.font; ctx.fillText(p.t, cx, y); cx += p.w; });
+        ctx.textAlign = prevAlign;
+    }
+
+    function spacedWidth(ctx, text, spacing) {
+        const chars = Array.from(text);
+        return chars.reduce((a, c) => a + ctx.measureText(c).width, 0) + spacing * (chars.length - 1);
+    }
+
     function createStoryCanvas() {
         const canvas = document.createElement('canvas');
-        canvas.width = 1080;
-        canvas.height = 1920;
+        canvas.width = W;
+        canvas.height = H;
         const ctx = canvas.getContext('2d');
 
         ctx.fillStyle = COLORS.bg;
-        ctx.fillRect(0, 0, 1080, 1920);
-        const gradient = ctx.createRadialGradient(540, 400, 0, 540, 400, 800);
-        gradient.addColorStop(0, 'rgba(201, 162, 39, 0.08)');
-        gradient.addColorStop(1, 'rgba(201, 162, 39, 0)');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 1080, 1920);
+        ctx.fillRect(0, 0, W, H);
+        const glow = ctx.createRadialGradient(540, 520, 0, 540, 520, 900);
+        glow.addColorStop(0, 'rgba(201, 162, 39, 0.12)');
+        glow.addColorStop(1, 'rgba(201, 162, 39, 0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, W, H);
+
+        // Cornice doppia con rombi agli angoli
+        ctx.strokeStyle = 'rgba(201, 162, 39, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(40, 40, W - 80, H - 80);
+        ctx.strokeStyle = 'rgba(201, 162, 39, 0.15)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(54, 54, W - 108, H - 108);
+        [[40, 40], [W - 40, 40], [40, H - 40], [W - 40, H - 40]].forEach(([x, y]) => drawDiamond(ctx, x, y, 10, COLORS.gold));
+
+        drawFuthark(ctx, 118, false);
 
         ctx.textAlign = 'center';
-        ctx.font = '48px serif';
-        ctx.fillStyle = 'rgba(201, 162, 39, 0.5)';
-        ctx.fillText('ᚠ   ᚢ   ᚦ', 540, 120);
-        ctx.font = '600 56px Cinzel, serif';
+        ctx.font = '600 64px Cinzel, serif';
         ctx.fillStyle = COLORS.text;
-        ctx.fillText('VALHALLA VO2', 540, 220);
-        ctx.font = 'italic 28px "Cormorant Garamond", serif';
+        spacedText(ctx, 'VALHALLA VO2', 540, 230, 10);
+        ctx.font = 'italic 32px "Cormorant Garamond", serif';
         ctx.fillStyle = COLORS.gold;
-        ctx.fillText('Il Respiro di Odino', 540, 270);
-        ctx.strokeStyle = 'rgba(201, 162, 39, 0.5)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(340, 320);
-        ctx.lineTo(740, 320);
-        ctx.stroke();
+        ctx.fillText('Il Respiro di Odino', 540, 284);
 
-        // Footer
-        ctx.font = '28px "Cormorant Garamond", serif';
-        ctx.fillStyle = 'rgba(201, 162, 39, 0.8)';
-        ctx.fillText('NicholasRubini.it', 540, 1820);
-        ctx.font = '40px serif';
-        ctx.fillStyle = 'rgba(201, 162, 39, 0.4)';
-        ctx.fillText('ᛟ', 540, 1880);
+        const lineL = ctx.createLinearGradient(300, 0, 500, 0);
+        lineL.addColorStop(0, 'rgba(201, 162, 39, 0)');
+        lineL.addColorStop(1, 'rgba(201, 162, 39, 0.8)');
+        ctx.strokeStyle = lineL;
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(300, 340); ctx.lineTo(505, 340); ctx.stroke();
+        const lineR = ctx.createLinearGradient(575, 0, 780, 0);
+        lineR.addColorStop(0, 'rgba(201, 162, 39, 0.8)');
+        lineR.addColorStop(1, 'rgba(201, 162, 39, 0)');
+        ctx.strokeStyle = lineR;
+        ctx.beginPath(); ctx.moveTo(575, 340); ctx.lineTo(780, 340); ctx.stroke();
+        drawOthala(ctx, 540, 340, 64);
+
+        ctx.textAlign = 'center';
+        ctx.font = '30px "Cormorant Garamond", serif';
+        ctx.fillStyle = 'rgba(201, 162, 39, 0.85)';
+        ctx.fillText('NicholasRubini.it', 540, 1770);
+        drawFuthark(ctx, 1838, true);
 
         return { canvas, ctx };
     }
@@ -616,36 +765,77 @@
         ctx.fillStyle = COLORS.card;
         ctx.strokeStyle = COLORS.border;
         ctx.lineWidth = 2;
-        roundRectPath(ctx, x, y, w, h, 20);
+        roundRectPath(ctx, x, y, w, h, 18);
         ctx.fill();
         ctx.stroke();
+        drawCorners(ctx, x + 14, y + 14, w - 28, h - 28, 28, 'rgba(201, 162, 39, 0.6)');
+    }
+
+    function drawCardTitle(ctx, title, y) {
+        ctx.textAlign = 'center';
+        ctx.font = '600 28px Cinzel, serif';
+        ctx.fillStyle = COLORS.gold;
+        spacedText(ctx, title, 540, y, 5);
+        const half = spacedWidth(ctx, title, 5) / 2;
+        drawDiamond(ctx, 540 - half - 28, y - 10, 6, COLORS.gold);
+        drawDiamond(ctx, 540 + half + 28, y - 10, 6, COLORS.gold);
     }
 
     function drawSmallVdot(ctx, y) {
         ctx.textAlign = 'center';
         ctx.font = '600 26px Cinzel, serif';
         ctx.fillStyle = COLORS.muted;
-        ctx.fillText(state.result.mode === 'target' ? 'VO2MAX RICHIESTO' : 'VO2MAX', 540, y);
-        ctx.font = '700 76px Cinzel, serif';
+        spacedText(ctx, state.result.mode === 'target' ? 'VO2MAX RICHIESTO' : 'VO2MAX', 540, y, 6);
+        ctx.font = '700 96px Cinzel, serif';
         ctx.fillStyle = COLORS.gold;
-        ctx.fillText(state.result.vdot.toFixed(1), 540, y + 80);
+        ctx.shadowColor = 'rgba(201, 162, 39, 0.5)';
+        ctx.shadowBlur = 30;
+        ctx.fillText(state.result.vdot.toFixed(1), 540, y + 100);
+        ctx.shadowBlur = 0;
     }
 
-    function drawPerformanceRows(ctx, rows, top, bottom, left, right) {
-        const step = Math.min(130, (bottom - top) / rows.length);
-        let y = top + step * 0.6;
-        rows.forEach(p => {
+    function drawRowDivider(ctx, y, left, right) {
+        ctx.strokeStyle = 'rgba(201, 162, 39, 0.12)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
+    }
+
+    function drawPerformanceRows(ctx, rows, top, step, left, right, size) {
+        let y = top;
+        rows.forEach((p, i) => {
             const mine = C.isSameDistance(p.meters, state.result.meters);
-            ctx.textAlign = 'left';
-            ctx.fillStyle = mine ? COLORS.gold : COLORS.muted;
-            ctx.fillText(p.name, left, y);
-            ctx.textAlign = 'center';
-            ctx.fillStyle = COLORS.text;
-            ctx.fillText(C.formatTime(p.time), 560, y);
-            ctx.textAlign = 'right';
-            ctx.fillStyle = COLORS.gold;
-            ctx.fillText(C.formatPace(p.pace, 'km'), right, y);
+            if (mine) {
+                ctx.fillStyle = 'rgba(201, 162, 39, 0.12)';
+                ctx.fillRect(left - 30, y - step * 0.62, right - left + 60, step);
+            }
+            drawMixed(ctx, p.name, left, y, 'left', size, mine ? COLORS.gold : COLORS.muted);
+            drawNumber(ctx, C.formatTime(p.time), 590, y, 'center', size - 4, COLORS.text);
+            drawNumber(ctx, C.formatPace(p.pace, 'km'), right, y, 'right', size - 6, COLORS.gold);
+            if (i < rows.length - 1) drawRowDivider(ctx, y + step * 0.38, left, right);
             y += step;
+        });
+    }
+
+    function drawLevelBar(ctx, vdot, y) {
+        const x0 = 190, x1 = 890;
+        const grad = ctx.createLinearGradient(x0, 0, x1, 0);
+        grad.addColorStop(0, '#2e2512');
+        grad.addColorStop(0.35, '#6b5418');
+        grad.addColorStop(0.75, '#c9a227');
+        grad.addColorStop(1, '#f3dc8c');
+        ctx.fillStyle = grad;
+        roundRectPath(ctx, x0, y, x1 - x0, 12, 6);
+        ctx.fill();
+        const mx = x0 + (x1 - x0) * C.levelScalePercent(vdot) / 100;
+        ctx.shadowColor = 'rgba(230, 198, 92, 0.8)';
+        ctx.shadowBlur = 16;
+        drawDiamond(ctx, mx, y + 6, 16, COLORS.goldLight);
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'center';
+        ctx.font = '400 22px Cinzel, serif';
+        ctx.fillStyle = COLORS.faint;
+        C.LEVEL_SCALE.ticks.forEach((t, i, arr) => {
+            ctx.fillText(`${t}${i === arr.length - 1 ? '+' : ''}`, x0 + (x1 - x0) * C.levelScalePercent(t) / 100, y + 52);
         });
     }
 
@@ -654,97 +844,98 @@
         const r = state.result;
 
         ctx.textAlign = 'center';
-        ctx.font = '600 28px Cinzel, serif';
+        ctx.font = '600 30px Cinzel, serif';
         ctx.fillStyle = COLORS.muted;
-        ctx.fillText(r.mode === 'target' ? 'VO2MAX RICHIESTO' : 'VO2MAX', 540, 400);
+        spacedText(ctx, r.mode === 'target' ? 'VO2MAX RICHIESTO' : 'VO2MAX STIMATO', 540, 450, 8);
 
-        ctx.font = '700 200px Cinzel, serif';
+        ctx.font = '700 230px Cinzel, serif';
         ctx.fillStyle = COLORS.gold;
-        ctx.shadowColor = 'rgba(201, 162, 39, 0.5)';
-        ctx.shadowBlur = 50;
-        ctx.fillText(r.vdot.toFixed(1), 540, 590);
+        ctx.shadowColor = 'rgba(201, 162, 39, 0.55)';
+        ctx.shadowBlur = 60;
+        ctx.fillText(r.vdot.toFixed(1), 540, 680);
         ctx.shadowBlur = 0;
 
         ctx.font = '300 40px "Cormorant Garamond", serif';
         ctx.fillStyle = COLORS.muted;
-        ctx.fillText('ml/kg/min', 540, 660);
+        ctx.fillText('ml/kg/min · VDOT', 540, 750);
 
         const level = C.getVO2maxLevel(r.vdot);
         ctx.font = '600 44px Cinzel, serif';
         ctx.fillStyle = COLORS.text;
-        ctx.fillText(level.title.toUpperCase(), 540, 780);
-        ctx.font = 'italic 32px "Cormorant Garamond", serif';
+        spacedText(ctx, level.title.toUpperCase(), 540, 850, 4);
+        ctx.font = 'italic 34px "Cormorant Garamond", serif';
         ctx.fillStyle = COLORS.muted;
-        ctx.fillText(level.description, 540, 830);
+        ctx.fillText(level.description, 540, 900);
 
-        drawCard(ctx, 100, 920, 880, 780);
-        ctx.textAlign = 'center';
-        ctx.font = '600 28px Cinzel, serif';
-        ctx.fillStyle = COLORS.gold;
-        ctx.fillText('PRESTAZIONI EQUIVALENTI', 540, 1000);
-        ctx.font = 'italic 28px "Cormorant Garamond", serif';
-        ctx.fillStyle = COLORS.muted;
-        ctx.fillText(`${r.mode === 'target' ? 'Obiettivo' : 'Da'}: ${C.formatDistance(r.meters)} in ${C.formatTime(r.seconds)}`, 540, 1050);
+        drawLevelBar(ctx, r.vdot, 960);
+
+        drawCard(ctx, 100, 1080, 880, 600);
+        drawCardTitle(ctx, 'PRESTAZIONI EQUIVALENTI', 1160);
+        drawMixed(ctx, `${r.mode === 'target' ? 'Obiettivo' : 'Da'}: ${C.formatDistance(r.meters)} in ${C.formatTime(r.seconds)}`, 540, 1210, 'center', 30, COLORS.muted, 'italic 400');
 
         const key = C.DISTANCES.filter(d => [5000, 10000, 21097.5, 42195].includes(d.meters));
-        ctx.font = '500 38px "Cormorant Garamond", serif';
-        drawPerformanceRows(ctx, C.equivalentPerformances(r.vdot, key), 1090, 1660, 170, 910);
+        drawPerformanceRows(ctx, C.equivalentPerformances(r.vdot, key), 1310, 105, 170, 910, 40);
         return canvas;
     }
 
     function generatePerformanceImage() {
         const { canvas, ctx } = createStoryCanvas();
-        drawSmallVdot(ctx, 400);
-        drawCard(ctx, 80, 560, 920, 1150);
+        drawSmallVdot(ctx, 450);
 
-        ctx.textAlign = 'center';
-        ctx.font = '600 28px Cinzel, serif';
-        ctx.fillStyle = COLORS.gold;
-        ctx.fillText('PRESTAZIONI EQUIVALENTI', 540, 640);
+        const rows = C.equivalentPerformances(state.result.vdot);
+        const step = 118;
+        const cardH = 200 + rows.length * step;
+        const cardTop = Math.max(620, 620 + (1100 - cardH) / 2);
+        drawCard(ctx, 80, cardTop, 920, cardH);
+        drawCardTitle(ctx, 'PRESTAZIONI EQUIVALENTI', cardTop + 80);
 
         ctx.font = '600 20px Cinzel, serif';
+        ctx.fillStyle = COLORS.faint;
         ctx.textAlign = 'left';
-        ctx.fillText('DISTANZA', 150, 710);
+        ctx.fillText('DISTANZA', 150, cardTop + 145);
         ctx.textAlign = 'center';
-        ctx.fillText('TEMPO', 560, 710);
+        ctx.fillText('TEMPO', 590, cardTop + 145);
         ctx.textAlign = 'right';
-        ctx.fillText('RITMO', 930, 710);
+        ctx.fillText('RITMO', 930, cardTop + 145);
 
-        ctx.font = '500 36px "Cormorant Garamond", serif';
-        drawPerformanceRows(ctx, C.equivalentPerformances(state.result.vdot), 740, 1680, 150, 930);
+        drawPerformanceRows(ctx, rows, cardTop + 225, step, 150, 930, 38);
         return canvas;
     }
 
     function generateZonesImage() {
         const { canvas, ctx } = createStoryCanvas();
         const coach = C.TRAINING_ZONES[prefs.coach];
-        drawSmallVdot(ctx, 390);
-        drawCard(ctx, 80, 520, 920, 1180);
+        drawSmallVdot(ctx, 450);
 
+        const zones = coach.zones.map(z => ({ zone: z, p: C.getZonePaces(state.result.vdot, z) })).filter(z => z.p);
+        const step = Math.min(150, 980 / zones.length);
+        const cardH = 190 + zones.length * step;
+        const cardTop = Math.max(620, 620 + (1100 - cardH) / 2); // centrata nello spazio disponibile
+        drawCard(ctx, 80, cardTop, 920, cardH);
+        drawCardTitle(ctx, 'RITMI DI ALLENAMENTO', cardTop + 80);
         ctx.textAlign = 'center';
-        ctx.font = '600 26px Cinzel, serif';
-        ctx.fillStyle = COLORS.gold;
-        ctx.fillText('RITMI DI ALLENAMENTO', 540, 600);
-        ctx.font = 'italic 26px "Cormorant Garamond", serif';
+        ctx.font = 'italic 30px "Cormorant Garamond", serif';
         ctx.fillStyle = COLORS.muted;
-        ctx.fillText(`Sistema ${coach.name}`, 540, 642);
+        ctx.fillText(`Sistema ${coach.name}`, 540, cardTop + 128);
 
-        const step = Math.min(160, 980 / coach.zones.length);
-        let y = 730;
-        coach.zones.forEach(zone => {
-            const p = C.getZonePaces(state.result.vdot, zone);
-            if (!p) return;
-            ctx.font = '500 34px "Cormorant Garamond", serif';
-            ctx.fillStyle = COLORS.text;
-            ctx.textAlign = 'left';
-            ctx.fillText(zone.name, 150, y);
+        let y = cardTop + 220;
+        zones.forEach(({ zone, p }, i) => {
+            // Runa della zona in un riquadro
+            const rune = FOCUS_RUNES[zone.focus];
+            ctx.strokeStyle = COLORS.border;
+            ctx.lineWidth = 2;
+            roundRectPath(ctx, 140, y - 42, 56, 56, 8);
+            ctx.stroke();
+            ctx.textAlign = 'center';
+            ctx.font = '34px serif';
             ctx.fillStyle = COLORS.gold;
-            ctx.textAlign = 'right';
-            ctx.fillText(C.formatZonePace(p, 'km'), 930, y);
-            ctx.font = '400 24px "Cormorant Garamond", serif';
-            ctx.fillStyle = COLORS.faint;
-            ctx.textAlign = 'left';
-            ctx.fillText(p.basis, 150, y + 36);
+            ctx.fillText(rune ? rune.rune : '', 168, y - 2);
+
+            drawMixed(ctx, zone.name, 222, y - 8, 'left', 36, COLORS.text);
+            drawMixed(ctx, p.basis, 222, y + 26, 'left', 25, COLORS.faint, '400');
+
+            drawNumber(ctx, C.formatZonePace(p, 'km'), 940, y, 'right', 32, COLORS.gold);
+            if (i < zones.length - 1) drawRowDivider(ctx, y + step * 0.45, 140, 940);
             y += step;
         });
         return canvas;
@@ -976,7 +1167,22 @@
     // INIT
     // ============================================
 
+    function setupResultsNav() {
+        if (!('IntersectionObserver' in window)) return;
+        const links = Array.from(el.resultsNav.querySelectorAll('a'));
+        const targets = links.map(a => document.querySelector(a.getAttribute('href')));
+        const visible = new Map();
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => visible.set(e.target, e.isIntersecting));
+            const idx = targets.findIndex(t => visible.get(t));
+            if (idx < 0) return;
+            links.forEach((a, i) => a.classList.toggle('active', i === idx));
+        }, { rootMargin: '-70px 0px -55% 0px' });
+        targets.forEach(t => t && observer.observe(t));
+    }
+
     function init() {
+        setupResultsNav();
         renderLevelLabels();
 
         el.distance.value = prefs.distance;
