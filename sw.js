@@ -1,7 +1,7 @@
 // Service worker: l'app funziona offline (es. in pista senza rete).
 // Strategia: stale-while-revalidate. Si serve subito la cache e la si aggiorna in background,
 // quindi un nuovo deploy è visibile al caricamento successivo.
-const CACHE = 'valhalla-v4';
+const CACHE = 'valhalla-v5';
 const SHELL = [
     './',
     'index.html',

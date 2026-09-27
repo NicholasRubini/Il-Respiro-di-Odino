@@ -124,13 +124,25 @@ test('Hansons: tempo = MP, strength = MP −10 s/miglio, easy = MP +1–2 min/mi
     assert.ok(Math.abs((easy.slow - MP3H) * C.METERS_PER_MILE / 1000 - 120) < 0.1);
 });
 
-test('Pfitzinger: GA = MP +15–25%, LT = ritmo 15 km–mezza, VO2max = ritmo 3–5 km', () => {
+test('Pfitzinger: GA = MP +15–25%, endurance = MP +10–20%, LT = gara 45–60 min, VO2max = ritmo 3–5 km', () => {
     const ga = C.getZonePaces(V3H, zone('pfitzinger', 'General Aerobic'));
     assert.ok(Math.abs(ga.fast / MP3H - 1.15) < 1e-3 && Math.abs(ga.slow / MP3H - 1.25) < 1e-3);
+    const en = C.getZonePaces(V3H, zone('pfitzinger', 'Endurance'));
+    assert.ok(Math.abs(en.fast / MP3H - 1.10) < 1e-3 && Math.abs(en.slow / MP3H - 1.20) < 1e-3);
     const lt = C.getZonePaces(V3H, zone('pfitzinger', 'Lactate Threshold'));
-    assert.ok(Math.abs(lt.slow - C.calculateRaceTime(V3H, 21097.5) / 21.0975) < 0.5);
+    // il ritmo "slow" della soglia è quello di una gara che dura esattamente 60 minuti
+    const d60 = 3600 / lt.slow * 1000;
+    assert.ok(Math.abs(C.calculateRaceTime(V3H, d60) - 3600) < 1);
+    assert.ok(lt.fast < lt.slow);
     const vo2 = C.getZonePaces(V3H, zone('pfitzinger', 'VO2max'));
     assert.ok(Math.abs(vo2.fast - C.calculateRaceTime(V3H, 3000) / 3) < 0.5);
     const rec = C.getZonePaces(V3H, zone('pfitzinger', 'Recovery'));
     assert.ok(C.formatZonePace(rec, 'km').startsWith('≥ '));
+});
+
+test('Pfitzinger LT per un amatore da 10 km in 55 min ≈ ritmo 10 km (sito Pfitzinger Coaching)', () => {
+    const v = C.calculateVO2max(10000, 55 * 60);
+    const lt = C.getZonePaces(v, zone('pfitzinger', 'Lactate Threshold'));
+    const pace10k = 55 * 60 / 10;
+    assert.ok(lt.fast <= pace10k + 1 && lt.slow >= pace10k - 1, `${lt.fast} ${lt.slow} vs ${pace10k}`);
 });
