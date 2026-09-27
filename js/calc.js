@@ -54,15 +54,15 @@
         },
         pfitzinger: {
             name: 'Pete Pfitzinger',
-            note: 'Advanced Marathoning / Faster Road Racing. Ritmi ricavati dalle regole del libro rispetto ai tuoi ritmi gara previsti. L\'autore usa anche la FC: in caso di dubbio, vale la sensazione.',
+            note: 'Advanced Marathoning (4ª ed.) / Faster Road Racing. Soglia dal sistema "LT pace" di Pfitzinger (ritmo di una gara da 45–60 min), fondi e lunghi come % del ritmo maratona. Pfitzinger prescrive anche la FC: la trovi aprendo ogni zona.',
             zones: [
-                { name: 'Recovery', basis: 'Più lento del General Aerobic', pace: (c) => ({ slow: c.mp * 1.25, fast: c.mp * 1.25, open: 'slower' }), description: 'Recupero puro. Molto facile: il ritmo non conta, conta non affaticarsi (FC sotto ~76% della massima).', workout: '20-45 min il giorno dopo allenamenti duri.', focus: 'recovery' },
-                { name: 'General Aerobic', basis: 'Ritmo maratona +15–25%', pace: (c) => ({ fast: c.mp * 1.15, slow: c.mp * 1.25 }), description: 'Base aerobica quotidiana. Il pane quotidiano del maratoneta.', workout: '45-90 min, conversazione possibile.', focus: 'endurance' },
-                { name: 'Long Run', basis: 'Ritmo maratona +10–20%', pace: (c) => ({ fast: c.mp * 1.10, slow: c.mp * 1.20 }), description: 'Fondo lungo per adattamenti metabolici e mentali. Parti sul lato lento e chiudi su quello veloce.', workout: 'Long run 90-150 min, progressione finale opzionale.', focus: 'endurance' },
-                { name: 'Marathon Pace', basis: 'Ritmo maratona previsto', pace: (c) => ({ fast: c.mp, slow: c.mp }), description: 'Ritmo gara maratona. Abitua corpo e mente al ritmo obiettivo.', workout: 'Porzioni a ritmo gara nel lungo (es. 26 km con 16 km a MP).', focus: 'endurance' },
-                { name: 'Lactate Threshold', basis: 'Ritmo gara 15 km – mezza', pace: (c) => ({ fast: c.race(15000), slow: c.race(21097.5) }), description: 'Soglia del lattato. Il ritmo che reggi in gara per circa un\'ora.', workout: 'Tempo run 20-40 min, o 2×20 min con breve recupero.', focus: 'threshold' },
-                { name: 'VO2max', basis: 'Ritmo gara 3 km – 5 km', pace: (c) => ({ fast: c.race(3000), slow: c.race(5000) }), description: 'Potenza aerobica massima. Cuore e polmoni al limite.', workout: 'Intervalli 600-1600m, recupero 50-90% del tempo di lavoro.', focus: 'vo2max' },
-                { name: 'Speed', basis: 'Ritmo gara del miglio o più veloce', pace: (c) => ({ fast: c.race(METERS_PER_MILE), slow: c.race(METERS_PER_MILE), open: 'faster' }), maxRep: 200, description: 'Neuromuscolare. Rapidità e meccanica di corsa, non fatica.', workout: 'Strides 80-150m con recupero completo.', focus: 'speed' }
+                { name: 'Recovery', basis: 'Più lento del General Aerobic', hr: '< 76% FCmax · < 70% FC di riserva', pace: (c) => ({ slow: c.mp * 1.25, fast: c.mp * 1.25, open: 'slower' }), description: 'Corsa di recupero dopo le sedute dure. Il libro la definisce solo con la FC: il ritmo è quello che ti tiene sotto il limite, anche molto lento.', workout: '6-11 km (4-7 miglia) il giorno dopo un lavoro di qualità.', focus: 'recovery' },
+                { name: 'General Aerobic', basis: 'Ritmo maratona +15–25%', hr: '70–81% FCmax · 62–75% FC di riserva', pace: (c) => ({ fast: c.mp * 1.15, slow: c.mp * 1.25 }), description: 'Corsa aerobica quotidiana: costruisce volume e capillarizzazione senza affaticare.', workout: 'Fino a ~16 km (10 miglia), a volte con 8-10×100m strides.', focus: 'endurance' },
+                { name: 'Endurance', basis: 'Lunghi e medio-lunghi · MP +10–20%', hr: '74–84% FCmax · 65–78% FC di riserva', pace: (c) => ({ fast: c.mp * 1.10, slow: c.mp * 1.20 }), description: 'Lunghi e medio-lunghi. Parti sul lato lento e chiudi su quello veloce.', workout: 'Medio-lungo 18-24 km (11-15 miglia); lungo da 26 km (16 miglia) in su.', focus: 'endurance' },
+                { name: 'Marathon Pace', basis: 'Ritmo maratona (obiettivo)', hr: '79–88% FCmax · 73–84% FC di riserva', pace: (c) => ({ fast: c.mp, slow: c.mp }), description: 'Il ritmo gara della maratona. Nel libro è il ritmo obiettivo: usa la modalità Obiettivo Tempo sulla maratona.', workout: 'Porzioni a ritmo maratona dentro un lungo (es. 26 km con 19 km a MP).', focus: 'endurance' },
+                { name: 'Lactate Threshold', basis: 'Ritmo di una gara da 45–60 min', hr: '82–91% FCmax · 77–88% FC di riserva', pace: (c) => ({ fast: c.dur(45 * 60), slow: c.dur(60 * 60) }), description: 'Il ritmo che reggi in gara per circa un\'ora. Per atleti veloci ≈ ritmo 15 km–mezza, per chi corre i 10 km in 50-65 min ≈ ritmo 10 km.', workout: 'Tempo run: 20-45 min continui a LT (4ª ed.: prescritti a tempo), oppure LT intervals.', focus: 'threshold' },
+                { name: 'VO2max', basis: 'Ritmo gara 3 km – 5 km', hr: '93–95% FCmax · 91–94% FC di riserva', pace: (c) => ({ fast: c.race(3000), slow: c.race(5000) }), description: 'Potenza aerobica massima. Nei piani maratona Pfitzinger punta al lato del ritmo 5 km; ripetute brevi verso il lato 3 km.', workout: 'Ripetute 600-1600m (2-6 min), 5-8 km totali, recupero jog 50-90% del tempo di lavoro.', focus: 'vo2max' },
+                { name: 'Speed', basis: 'Più veloce del ritmo VO2max', hr: 'FC non indicativa', pace: (c) => ({ fast: c.race(3000), slow: c.race(3000), open: 'faster' }), maxRep: 200, description: 'Rapidità e meccanica: veloce ma rilassato, mai uno sprint massimale.', workout: 'Strides 8-10×100m a fine corsa aerobica, recupero completo.', focus: 'speed' }
             ]
         },
         hansons: {
@@ -220,6 +220,18 @@
         return (lo + hi) / 2;
     }
 
+    // Ritmo gara (s/km) per una gara che dura `seconds`: cerca la distanza corrispondente
+    function paceForDuration(vo2max, seconds) {
+        let lo = 500, hi = 100000;
+        if (!(calculateRaceTime(vo2max, hi) > seconds)) return NaN;
+        for (let i = 0; i < 60; i++) {
+            const mid = (lo + hi) / 2;
+            if (calculateRaceTime(vo2max, mid) < seconds) lo = mid; else hi = mid;
+        }
+        const d = (lo + hi) / 2;
+        return seconds / (d / 1000);
+    }
+
     // Ritmo (s/km) a una data % del VO2max
     function calculateTrainingPace(vo2max, percentVO2max) {
         const v = velocityForVO2(vo2max * percentVO2max / 100);
@@ -230,7 +242,8 @@
     function getZonePaces(vo2max, zone) {
         if (typeof zone.pace === 'function') {
             const race = (m) => calculateRaceTime(vo2max, m) / (m / 1000);
-            const p = zone.pace({ race, mp: race(42195) });
+            const dur = (seconds) => paceForDuration(vo2max, seconds);
+            const p = zone.pace({ race, dur, mp: race(42195) });
             if (!(p.fast > 0) || !(p.slow > 0)) return null;
             const ref = p.open === 'slower' ? p.slow : (p.open === 'faster' ? p.fast : (p.fast + p.slow) / 2);
             return { fast: p.fast, slow: p.slow, open: p.open || null, ref, basis: zone.basis };
@@ -334,7 +347,7 @@
         METERS_PER_MILE, DISTANCES, VO2MAX_LEVELS, LEVEL_SCALE, TRAINING_ZONES, REP_DISTANCES,
         toMeters, parseDistance, parseTime, formatTime, formatSplit, formatPace, formatPaceRange, formatSpeedKmh,
         formatDistance, oxygenCost, sustainableFraction, velocityForVO2, calculateVO2max, calculateRaceTime,
-        calculateTrainingPace, getZonePaces, formatZonePace, formatZoneSpeed, getVO2maxLevel, levelScalePercent, isSameDistance,
+        calculateTrainingPace, paceForDuration, getZonePaces, formatZonePace, formatZoneSpeed, getVO2maxLevel, levelScalePercent, isSameDistance,
         equivalentPerformances, evenSplits, repTimes, validateInput, validateVO2maxResult
     };
 

@@ -384,6 +384,7 @@
                     <div class="zone-details" id="zone-details-${index}">
                         <div class="zone-description">${escapeHtml(zone.description)}</div>
                         <div class="zone-workout"><strong>Allenamento tipo:</strong> ${escapeHtml(zone.workout)}</div>
+                        ${zone.hr ? `<div class="zone-workout"><strong>Frequenza cardiaca:</strong> ${escapeHtml(zone.hr)}</div>` : ''}
                         <div class="zone-workout"><strong>Velocità:</strong> ${C.formatZoneSpeed(p)} km/h (tapis roulant)</div>
                     </div>
                 </div>`;
