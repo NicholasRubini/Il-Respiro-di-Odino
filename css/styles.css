@@ -1906,3 +1906,15 @@ select {
     font-size: 1.15rem;
     color: var(--gold-primary);
 }
+
+.plan-offer-note {
+    margin: 14px auto 0;
+    max-width: 380px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    background: var(--bg-input);
+    border-left: 2px solid var(--border-active);
+    border-radius: 6px;
+    text-align: left;
+}
