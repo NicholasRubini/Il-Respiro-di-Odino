@@ -304,8 +304,7 @@
         $('ctaRunning').href = planUrl('running');
         const ctx = $('planContext');
         if (choice && state.result) {
-            const t = C.getZonePaces(state.result.vdot, C.TRAINING_ZONES.daniels.zones.find(z => z.focus === 'threshold'));
-            ctx.textContent = `Il tuo punto di partenza: VO2max ${state.result.vdot.toFixed(1)} · soglia ${C.formatPace(t.ref, 'km')}`;
+            ctx.textContent = `Il tuo VO2max di oggi: ${state.result.vdot.toFixed(1)}. Rifai il calcolo dopo il programma per misurare i progressi.`;
         } else {
             ctx.textContent = '';
         }
